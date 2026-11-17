@@ -37,6 +37,7 @@ You need macOS 15 or later, Xcode 16 or later, and [XcodeGen](https://github.com
 ```bash
 make test   # run the core tests
 make run    # build the app and open it
+make install  # build a release copy into /Applications as "This Mac"
 ```
 
 The app is not sandboxed and is not signed with a developer certificate. To browse every folder, turn on Full Disk Access for This Mac in System Settings, Privacy & Security.
