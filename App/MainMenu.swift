@@ -86,6 +86,7 @@ enum MainMenu {
         let view = submenu(in: main, title: "View")
         add(view, "Hidden Items", #selector(BrowserWindowController.toggleHidden(_:)), ".", [.command, .shift])
         add(view, "Preview Pane", #selector(BrowserWindowController.togglePreview(_:)), "p", [.command, .option])
+        add(view, "Expand Tree to Current Folder", #selector(BrowserWindowController.toggleExpandTree(_:)), "")
         view.addItem(.separator())
         add(view, "Refresh", #selector(BrowserWindowController.refresh(_:)), functionKey(NSF5FunctionKey), [])
         let refreshAlternate = add(view, "Refresh", #selector(BrowserWindowController.refresh(_:)), "r")

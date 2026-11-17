@@ -91,26 +91,47 @@ final class FolderTreeController: NSViewController, NSOutlineViewDataSource, NSO
     func reveal(_ location: Location) {
         isSyncing = true
         defer { isSyncing = false }
+        outline.expandItem(quickAccess)
+        outline.expandItem(thisMac)
         switch location {
         case .thisMac:
             select(thisMac)
         case .folder(let url):
-            guard let drive = driveNode(containing: url), let driveURL = drive.url else {
-                outline.deselectAll(nil)
+            let target = url.standardizedFileURL
+            if Settings.expandTree {
+                expandAndSelect(target)
                 return
             }
-            outline.expandItem(thisMac)
-            var node = drive
-            let remaining = url.standardizedFileURL.pathComponents
-                .dropFirst(driveURL.standardizedFileURL.pathComponents.count)
-            for component in remaining {
-                outline.expandItem(node)
-                guard let next = loadChildren(of: node).first(where: { $0.url?.lastPathComponent == component })
-                else { break }
-                node = next
+            // Keep the selection where the user clicked.
+            if let current = outline.item(atRow: outline.selectedRow) as? TreeNode,
+               current.url?.standardizedFileURL == target {
+                return
             }
-            select(node)
+            if let node = loadedNode(for: target), outline.row(forItem: node) >= 0 {
+                select(node)
+            } else if let quick = quickAccess.children?.first(where: { $0.url?.standardizedFileURL == target }) {
+                select(quick)
+            } else {
+                outline.deselectAll(nil)
+            }
         }
+    }
+
+    /// Opens every branch down to the Folder, as File Explorer does with "Expand to open folder".
+    private func expandAndSelect(_ url: URL) {
+        guard let drive = driveNode(containing: url), let driveURL = drive.url else {
+            outline.deselectAll(nil)
+            return
+        }
+        var node = drive
+        let remaining = url.pathComponents.dropFirst(driveURL.standardizedFileURL.pathComponents.count)
+        for component in remaining {
+            outline.expandItem(node)
+            guard let next = loadChildren(of: node).first(where: { $0.url?.lastPathComponent == component })
+            else { break }
+            node = next
+        }
+        select(node)
     }
 
     /// Reloads the Folders under one node, if that node is already loaded in the tree.

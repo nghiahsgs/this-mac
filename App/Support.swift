@@ -64,6 +64,12 @@ enum Settings {
         set { defaults.set(newValue, forKey: "showHidden") }
     }
 
+    /// Off by default, as in File Explorer: the Folder Tree only opens branches the user opens.
+    static var expandTree: Bool {
+        get { defaults.bool(forKey: "expandTree") }
+        set { defaults.set(newValue, forKey: "expandTree") }
+    }
+
     static var showPreview: Bool {
         get { defaults.object(forKey: "showPreview") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "showPreview") }

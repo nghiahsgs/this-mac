@@ -8,6 +8,7 @@ Status: early version, built for personal use. Use it at your own risk.
 
 - **This Mac page**: every drive with its free space, and quick access to Home, Desktop, Documents and Downloads.
 - **Folder tree**: one root, then drives, then the real folders from `/`.
+  It opens only the branches you open. Turn on View, Expand Tree to Current Folder to make it follow you.
 - **Address bar**: shows the full path. Click a segment to go there, or press `⌘L` to type or copy a path.
 - **Details list**: name, date modified, kind and size. Folders are always on top.
 - **Preview pane**: select a file to read it on the right, without opening it.

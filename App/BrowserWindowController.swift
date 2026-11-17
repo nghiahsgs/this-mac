@@ -54,6 +54,11 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         location = .thisMac
         applyLocation()
         if start != .thisMac { navigate(to: start, recordHistory: false) }
+        // The tree only keeps expansion and selection once its view is on screen.
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.tree.reveal(self.location)
+        }
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
@@ -303,6 +308,11 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         Settings.showHidden.toggle()
         tree.rebuild()
         reloadCurrentFolder()
+        tree.reveal(location)
+    }
+
+    @objc func toggleExpandTree(_ sender: Any?) {
+        Settings.expandTree.toggle()
         tree.reveal(location)
     }
 
@@ -572,6 +582,7 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         switch menuItem.action {
         case #selector(toggleHidden(_:)): menuItem.state = Settings.showHidden ? .on : .off
         case #selector(togglePreview(_:)): menuItem.state = Settings.showPreview ? .on : .off
+        case #selector(toggleExpandTree(_:)): menuItem.state = Settings.expandTree ? .on : .off
         default: break
         }
         return isEnabled(menuItem.action)
@@ -618,6 +629,7 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
             for (title, action) in [
                 ("Hidden Items", #selector(toggleHidden(_:))),
                 ("Preview Pane", #selector(togglePreview(_:))),
+                ("Expand Tree to Current Folder", #selector(toggleExpandTree(_:))),
             ] {
                 let entry = NSMenuItem(title: title, action: action, keyEquivalent: "")
                 entry.target = self
