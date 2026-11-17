@@ -9,6 +9,8 @@ final class DetailsTableView: NSTableView {
         switch event.keyCode {
         case 36, 76: // Return, Enter
             browser?.openSelection(nil)
+        case 49: // Space
+            browser?.viewSelection(nil)
         case 125 where command: // ⌘↓
             browser?.openSelection(nil)
         case 51: // Backspace

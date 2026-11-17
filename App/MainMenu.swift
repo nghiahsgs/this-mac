@@ -27,6 +27,10 @@ enum Shortcuts {
             Shortcut(keys: "⇧⌘H", action: "Go to your home folder"),
         ]),
         ShortcutGroup(title: "Files", shortcuts: [
+            Shortcut(keys: "Space or ⌘Y", action: "View the selected file inside the window"),
+            Shortcut(keys: "esc", action: "Close the viewer and go back to the list"),
+            Shortcut(keys: "⌃⌘F", action: "Full screen"),
+            Shortcut(keys: "⇧⌘O", action: "Open the selected file in its own app"),
             Shortcut(keys: "⌘X", action: "Cut"),
             Shortcut(keys: "⌘C", action: "Copy"),
             Shortcut(keys: "⌘V", action: "Paste"),
@@ -65,6 +69,8 @@ enum MainMenu {
         add(file, "New Folder", #selector(BrowserWindowController.newFolder(_:)), "n", [.command, .shift])
         file.addItem(.separator())
         add(file, "Open", #selector(BrowserWindowController.openSelection(_:)), "o")
+        add(file, "View Here", #selector(BrowserWindowController.viewSelection(_:)), "y")
+        add(file, "Open in Default App", #selector(BrowserWindowController.openExternally(_:)), "o", [.command, .shift])
         add(file, "Rename", #selector(BrowserWindowController.renameSelection(_:)), functionKey(NSF2FunctionKey), [])
         add(file, "Move to Trash", #selector(BrowserWindowController.moveToTrash(_:)), "\u{8}")
         file.addItem(.separator())
@@ -105,6 +111,7 @@ enum MainMenu {
         let window = submenu(in: main, title: "Window")
         add(window, "Minimize", #selector(NSWindow.performMiniaturize(_:)), "m")
         add(window, "Zoom", #selector(NSWindow.performZoom(_:)), "")
+        add(window, "Enter Full Screen", #selector(NSWindow.toggleFullScreen(_:)), "f", [.command, .control])
         NSApp.windowsMenu = window
 
         let help = submenu(in: main, title: "Help")

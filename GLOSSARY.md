@@ -48,6 +48,10 @@ _Avoid_: File list, Table view
 The panel that shows the content of the selected Item without opening it.
 _Avoid_: Inspector, Quick Look panel
 
+**Viewer**:
+The view that shows one Item across the whole window, in place of the Folder Tree and Details List.
+_Avoid_: Reader, Lightbox, Quick Look
+
 **Cut**:
 Marking Items to be moved. Nothing moves until the user Pastes.
 _Avoid_: Move

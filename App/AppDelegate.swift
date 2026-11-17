@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 controller.selectItem(named: arguments[nameIndex + 1])
             }
             if arguments.contains("--shortcuts") { controller.showShortcuts(nil) }
+            if arguments.contains("--view") { controller.viewSelection(nil) }
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
             guard let controller = self?.controllers.first, let window = controller.window else { return }

@@ -25,6 +25,8 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
     private let tree = FolderTreeController()
     private let details = DetailsListController()
     private let preview = PreviewController()
+    private let viewer = ViewerController()
+    private var viewerEnteredFullScreen = false
     private let addressBar = AddressBar(frame: NSRect(x: 0, y: 0, width: 600, height: 36))
     private let contentController = NSViewController()
     private var homeHost: NSHostingView<HomeView>?
@@ -106,6 +108,22 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         split.splitView.setPosition(230, ofDividerAt: 0)
         split.splitView.setPosition(1000, ofDividerAt: 1)
 
+        // The Viewer covers the whole window content and stays hidden until an Item is viewed.
+        split.addChild(viewer)
+        let viewerView = viewer.view
+        viewerView.translatesAutoresizingMaskIntoConstraints = false
+        viewerView.isHidden = true
+        split.view.addSubview(viewerView)
+        NSLayoutConstraint.activate([
+            viewerView.leadingAnchor.constraint(equalTo: split.view.leadingAnchor),
+            viewerView.trailingAnchor.constraint(equalTo: split.view.trailingAnchor),
+            viewerView.topAnchor.constraint(equalTo: split.view.topAnchor),
+            viewerView.bottomAnchor.constraint(equalTo: split.view.bottomAnchor),
+        ])
+        viewer.onClose = { [weak self] in self?.closeViewer() }
+        viewer.onToggleFullScreen = { [weak self] in self?.toggleViewerFullScreen() }
+        viewer.onOpenExternally = { NSWorkspace.shared.open($0) }
+
         addressBar.onNavigate = { [weak self] in self?.navigate(to: $0) }
         addressBar.onCopy = { [weak self] in self?.copyCurrentAddress() }
         let accessory = NSTitlebarAccessoryViewController()
@@ -151,6 +169,7 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
     func windowWillClose(_ notification: Notification) {
         watcher.stop()
         preview.shutDown()
+        viewer.shutDown()
         observers.forEach(NSWorkspace.shared.notificationCenter.removeObserver)
         onClose?()
     }
@@ -188,6 +207,7 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
     }
 
     private func applyLocation() {
+        if isViewing { closeViewer() }
         window?.title = location.title
         addressBar.show(location)
         switch location {
@@ -333,12 +353,60 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         host.presentAsSheet(sheet)
     }
 
+    // MARK: - Viewer
+
+    private var isViewing: Bool { viewer.url != nil }
+
+    /// File types that open in the Viewer on a double click, instead of in another app.
+    private func opensInViewer(_ entry: FileEntry) -> Bool {
+        !entry.isFolder && entry.url.pathExtension.lowercased() == "pdf"
+    }
+
+    func showViewer(_ url: URL) {
+        viewer.view.isHidden = false
+        viewer.show(url)
+        window?.makeFirstResponder(viewer.view)
+    }
+
+    func closeViewer() {
+        guard isViewing else { return }
+        viewer.hide()
+        viewer.view.isHidden = true
+        if viewerEnteredFullScreen, window?.styleMask.contains(.fullScreen) == true {
+            window?.toggleFullScreen(nil)
+        }
+        viewerEnteredFullScreen = false
+        window?.makeFirstResponder(details.tableView)
+    }
+
+    private func toggleViewerFullScreen() {
+        guard let window else { return }
+        viewerEnteredFullScreen = !window.styleMask.contains(.fullScreen)
+        window.toggleFullScreen(nil)
+    }
+
+    @objc func viewSelection(_ sender: Any?) {
+        let targets = details.targetEntries()
+        guard targets.count == 1, let entry = targets.first, !entry.isFolder else { return }
+        showViewer(entry.url)
+    }
+
+    @objc func openExternally(_ sender: Any?) {
+        for entry in details.targetEntries() where !entry.isFolder {
+            NSWorkspace.shared.open(entry.url)
+        }
+    }
+
     // MARK: - File actions
 
     @objc func openSelection(_ sender: Any?) {
         let targets = details.targetEntries()
         if targets.count == 1, let entry = targets.first, entry.isFolder {
             navigate(to: .folder(entry.url))
+            return
+        }
+        if targets.count == 1, let entry = targets.first, opensInViewer(entry) {
+            showViewer(entry.url)
             return
         }
         for entry in targets where !entry.isFolder {
@@ -520,6 +588,10 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         }
         if !targets.isEmpty {
             add("Open", #selector(openSelection(_:)))
+            if targets.count == 1, targets.first?.isFolder == false {
+                add("View Here", #selector(viewSelection(_:)))
+                add("Open in Default App", #selector(openExternally(_:)))
+            }
             if targets.allSatisfy({ !$0.isFolder }), let first = targets.first {
                 let applications = NSWorkspace.shared.urlsForApplications(toOpen: first.url).prefix(12)
                 if !applications.isEmpty {
@@ -574,6 +646,11 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
             return hasTargets
         case #selector(renameSelection(_:)):
             return inFolder && details.targetEntries().count == 1
+        case #selector(viewSelection(_:)):
+            let targets = inFolder ? details.targetEntries() : []
+            return targets.count == 1 && targets.first?.isFolder == false
+        case #selector(openExternally(_:)):
+            return hasTargets
         default:
             return true
         }
