@@ -1,0 +1,43 @@
+name: ThisMac
+options:
+  bundleIdPrefix: com.nghiahsgs
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+packages:
+  ThisMacCore:
+    path: Packages/ThisMacCore
+targets:
+  ThisMac:
+    type: application
+    platform: macOS
+    sources:
+      - path: App
+        excludes:
+          - Info.plist
+    dependencies:
+      - package: ThisMacCore
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: This Mac
+        CFBundleName: This Mac
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        LSApplicationCategoryType: public.app-category.utilities
+        NSPrincipalClass: NSApplication
+        NSHighResolutionCapable: true
+        NSDesktopFolderUsageDescription: This Mac shows the files in your Desktop folder.
+        NSDocumentsFolderUsageDescription: This Mac shows the files in your Documents folder.
+        NSDownloadsFolderUsageDescription: This Mac shows the files in your Downloads folder.
+        NSRemovableVolumesUsageDescription: This Mac shows the files on your external drives.
+    settings:
+      base:
+        PRODUCT_NAME: ThisMac
+        PRODUCT_BUNDLE_IDENTIFIER: com.nghiahsgs.thismac
+        SWIFT_VERSION: "5"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_APP_SANDBOX: NO
+        GENERATE_INFOPLIST_FILE: NO
