@@ -75,6 +75,7 @@ final class ViewerController: NSViewController {
         button.image = Icons.symbol(symbol, title)
         button.imagePosition = .imageLeading
         button.bezelStyle = .rounded
+        button.setContentHuggingPriority(.required, for: .horizontal)
         return button
     }
 
