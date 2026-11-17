@@ -34,13 +34,16 @@ final class DetailsListController: NSViewController, NSTableViewDataSource, NSTa
     private(set) var entries: [FileEntry] = []
     private var sortKey: SortKey = .name
     private var ascending = true
+    private var folder: URL?
+    private var isApplyingSort = false
 
     private let messageStack = NSStackView()
     private let messageLabel = NSTextField(wrappingLabelWithString: "")
     private let settingsButton = NSButton(title: "Open Privacy Settings", target: nil, action: nil)
 
     private let columns: [(id: String, title: String, width: CGFloat)] = [
-        ("name", "Name", 250), ("modified", "Date Modified", 150), ("kind", "Kind", 120), ("size", "Size", 70),
+        ("name", "Name", 250), ("modified", "Date Modified", 145), ("added", "Date Added", 145),
+        ("kind", "Kind", 110), ("size", "Size", 70),
     ]
 
     override func loadView() {
@@ -104,6 +107,17 @@ final class DetailsListController: NSViewController, NSTableViewDataSource, NSTa
     // MARK: - Content
 
     var isRenaming: Bool { tableView.currentEditor() != nil }
+
+    /// Switches to the sort order remembered for this Folder.
+    func useSort(for folder: URL) {
+        self.folder = folder
+        let saved = Settings.sort(for: folder)
+        sortKey = saved.key
+        ascending = saved.ascending
+        isApplyingSort = true
+        tableView.sortDescriptors = [NSSortDescriptor(key: saved.key.rawValue, ascending: saved.ascending)]
+        isApplyingSort = false
+    }
 
     func show(_ newEntries: [FileEntry], select urls: [URL]? = nil) {
         let keep = Set(urls ?? selectedEntries().map(\.url))
@@ -186,6 +200,8 @@ final class DetailsListController: NSViewController, NSTableViewDataSource, NSTa
             cell.alphaValue = CutState.contains(entry.url) ? 0.4 : (entry.isHidden ? 0.6 : 1)
         case "modified":
             cell.textField?.stringValue = Format.date(entry.modified)
+        case "added":
+            cell.textField?.stringValue = Format.date(entry.added)
         case "kind":
             cell.textField?.stringValue = entry.kind
         default:
@@ -198,8 +214,10 @@ final class DetailsListController: NSViewController, NSTableViewDataSource, NSTa
         guard let descriptor = tableView.sortDescriptors.first,
               let key = descriptor.key.flatMap(SortKey.init(rawValue:))
         else { return }
+        if isApplyingSort { return }
         sortKey = key
         ascending = descriptor.ascending
+        if let folder { Settings.setSort(key, ascending: ascending, for: folder) }
         show(entries)
     }
 

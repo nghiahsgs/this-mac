@@ -36,7 +36,7 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
 
     init(startAt start: Location) {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 1180, height: 720),
+            contentRect: NSRect(x: 0, y: 0, width: 1300, height: 760),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered, defer: false)
         window.minSize = NSSize(width: 720, height: 420)
@@ -100,11 +100,11 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
         split.addSplitViewItem(treeItem)
         split.addSplitViewItem(contentItem)
         split.addSplitViewItem(previewItem)
-        split.view.frame = NSRect(x: 0, y: 0, width: 1180, height: 720)
+        split.view.frame = NSRect(x: 0, y: 0, width: 1300, height: 760)
         window?.contentViewController = split
-        window?.setContentSize(NSSize(width: 1180, height: 720))
+        window?.setContentSize(NSSize(width: 1300, height: 760))
         split.splitView.setPosition(230, ofDividerAt: 0)
-        split.splitView.setPosition(880, ofDividerAt: 1)
+        split.splitView.setPosition(1000, ofDividerAt: 1)
 
         addressBar.onNavigate = { [weak self] in self?.navigate(to: $0) }
         addressBar.onCopy = { [weak self] in self?.copyCurrentAddress() }
@@ -209,6 +209,7 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
     }
 
     private func loadFolder(_ url: URL, select: [URL]?) {
+        details.useSort(for: url)
         do {
             details.show(try lister.list(url, showHidden: Settings.showHidden), select: select)
         } catch {

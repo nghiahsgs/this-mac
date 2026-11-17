@@ -12,17 +12,22 @@ public struct FileEntry: Hashable, Sendable {
     /// `nil` for Folders: their size is not computed.
     public let size: Int64?
     public let modified: Date?
+    /// When the Item was put into its Folder. This is what "newest download" means.
+    public let added: Date?
     public let kind: String
 }
 
 public enum SortKey: String, Sendable {
-    case name, modified, kind, size
+    case name, modified, added, kind, size
+
+    /// Sorting by a date mixes Folders with other Items, so the newest Item is on top.
+    public var keepsFoldersFirst: Bool { self != .modified && self != .added }
 }
 
 public struct DirectoryLister: Sendable {
     private static let keys: [URLResourceKey] = [
         .isDirectoryKey, .isPackageKey, .isHiddenKey, .isSymbolicLinkKey,
-        .fileSizeKey, .contentModificationDateKey, .localizedTypeDescriptionKey,
+        .fileSizeKey, .contentModificationDateKey, .addedToDirectoryDateKey, .localizedTypeDescriptionKey,
     ]
 
     public init() {}
@@ -58,13 +63,14 @@ public struct DirectoryLister: Sendable {
             isSymlink: isSymlink,
             size: isFolder ? nil : values.fileSize.map(Int64.init),
             modified: values.contentModificationDate,
+            added: values.addedToDirectoryDate,
             kind: values.localizedTypeDescription ?? (isFolder ? "Folder" : "Document"))
     }
 
-    /// Folders always come before other Items, whatever the key or direction.
+    /// Folders come before other Items, except when sorting by a date.
     public static func sorted(_ entries: [FileEntry], by key: SortKey, ascending: Bool) -> [FileEntry] {
         entries.sorted { a, b in
-            if a.isFolder != b.isFolder { return a.isFolder }
+            if key.keepsFoldersFirst, a.isFolder != b.isFolder { return a.isFolder }
             let order = compare(a, b, by: key)
             if order == .orderedSame {
                 return a.name.localizedStandardCompare(b.name) == .orderedAscending
@@ -81,6 +87,8 @@ public struct DirectoryLister: Sendable {
             return a.kind.localizedStandardCompare(b.kind)
         case .modified:
             return order(a.modified ?? .distantPast, b.modified ?? .distantPast)
+        case .added:
+            return order(a.added ?? a.modified ?? .distantPast, b.added ?? b.modified ?? .distantPast)
         case .size:
             return order(a.size ?? -1, b.size ?? -1)
         }

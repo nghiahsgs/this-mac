@@ -41,7 +41,7 @@ The full path from the root of a Drive to the current Folder.
 _Avoid_: Location, Breadcrumb, Path bar
 
 **Details List**:
-The table of Items in the current Folder, with Folders always above other Items.
+The table of Items in the current Folder. Folders are above other Items, except when the list is sorted by a date.
 _Avoid_: File list, Table view
 
 **Preview Pane**:

@@ -136,6 +136,33 @@ final class DirectoryListerTests: TempFolderTestCase {
     }
 }
 
+final class DateSortTests: TempFolderTestCase {
+    func testSortByDateMixesFoldersWithOtherItemsNewestFirst() throws {
+        let work = try makeFolder("work")
+        let old = try makeFile("work/old.txt")
+        let folder = try makeFolder("work/middle")
+        let new = try makeFile("work/new.txt")
+        let day: TimeInterval = 86_400
+        try fm.setAttributes([.modificationDate: Date(timeIntervalSinceNow: -3 * day)], ofItemAtPath: old.path)
+        try fm.setAttributes([.modificationDate: Date(timeIntervalSinceNow: -2 * day)], ofItemAtPath: folder.path)
+        try fm.setAttributes([.modificationDate: Date(timeIntervalSinceNow: -1 * day)], ofItemAtPath: new.path)
+
+        let entries = try DirectoryLister().list(work, showHidden: false)
+        let names = DirectoryLister.sorted(entries, by: .modified, ascending: false).map(\.name)
+
+        XCTAssertEqual(names, ["new.txt", "middle", "old.txt"])
+    }
+
+    func testItemsKnowWhenTheyWereAdded() throws {
+        let work = try makeFolder("work")
+        try makeFile("work/a.txt")
+
+        let entry = try XCTUnwrap(DirectoryLister().list(work, showHidden: false).first)
+
+        XCTAssertNotNil(entry.added)
+    }
+}
+
 final class FileOperationsTests: TempFolderTestCase {
     var ops: FileOperations!
 

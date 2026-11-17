@@ -70,6 +70,22 @@ enum Settings {
         set { defaults.set(newValue, forKey: "expandTree") }
     }
 
+    /// The sort order is remembered for each Folder. Downloads starts with the newest Item on top.
+    static func sort(for folder: URL) -> (key: SortKey, ascending: Bool) {
+        let saved = defaults.dictionary(forKey: "folderSort")?[folder.path] as? String
+        if let parts = saved?.split(separator: ":"), parts.count == 2, let key = SortKey(rawValue: String(parts[0])) {
+            return (key, parts[1] == "asc")
+        }
+        let downloads = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads")
+        return folder.path == downloads.path ? (.added, false) : (.name, true)
+    }
+
+    static func setSort(_ key: SortKey, ascending: Bool, for folder: URL) {
+        var all = defaults.dictionary(forKey: "folderSort") ?? [:]
+        all[folder.path] = "\(key.rawValue):\(ascending ? "asc" : "desc")"
+        defaults.set(all, forKey: "folderSort")
+    }
+
     static var showPreview: Bool {
         get { defaults.object(forKey: "showPreview") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "showPreview") }
