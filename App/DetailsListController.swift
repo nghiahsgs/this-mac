@@ -15,6 +15,10 @@ final class DetailsTableView: NSTableView {
             if command { browser?.moveToTrash(nil) } else { browser?.goUp(nil) }
         case 117: // Forward delete (fn⌫)
             browser?.moveToTrash(nil)
+        case 120: // F2
+            browser?.renameSelection(nil)
+        case 96: // F5
+            browser?.refresh(nil)
         default:
             super.keyDown(with: event)
         }
@@ -36,7 +40,7 @@ final class DetailsListController: NSViewController, NSTableViewDataSource, NSTa
     private let settingsButton = NSButton(title: "Open Privacy Settings", target: nil, action: nil)
 
     private let columns: [(id: String, title: String, width: CGFloat)] = [
-        ("name", "Name", 340), ("modified", "Date Modified", 170), ("kind", "Kind", 170), ("size", "Size", 90),
+        ("name", "Name", 250), ("modified", "Date Modified", 150), ("kind", "Kind", 120), ("size", "Size", 70),
     ]
 
     override func loadView() {
