@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import ThisMacCore
+import UniformTypeIdentifiers
 
 private extension NSToolbarItem.Identifier {
     static let back = NSToolbarItem.Identifier("back")
@@ -357,9 +358,17 @@ final class BrowserWindowController: NSWindowController, NSWindowDelegate, NSToo
 
     private var isViewing: Bool { viewer.url != nil }
 
-    /// File types that open in the Viewer on a double click, instead of in another app.
+    /// Items with readable content (documents, text, code, images, audio, video) open in the Viewer
+    /// on a double click. Apps, archives, disk images and installers still open the usual way.
     private func opensInViewer(_ entry: FileEntry) -> Bool {
-        !entry.isFolder && entry.url.pathExtension.lowercased() == "pdf"
+        guard !entry.isFolder,
+              let type = try? entry.url.resourceValues(forKeys: [.contentTypeKey]).contentType
+        else { return false }
+        if type.conforms(to: .application) || type.conforms(to: .archive) || type.conforms(to: .diskImage)
+            || type.conforms(to: .executable) {
+            return false
+        }
+        return type.conforms(to: .content)
     }
 
     func showViewer(_ url: URL) {

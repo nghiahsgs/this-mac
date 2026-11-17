@@ -12,7 +12,7 @@ Status: early version, built for personal use. Use it at your own risk.
 - **Address bar**: shows the full path. Click a segment to go there, or press `⌘L` to type or copy a path.
 - **Details list**: name, date modified, date added, kind and size. Folders are on top, except when you sort by a date. Each folder remembers its sort order, and Downloads starts with the newest item first.
 - **Preview pane**: select a file to read it on the right, without opening it.
-- **Viewer**: press Space, or double-click a PDF, to read a file across the whole window. It has a full screen button. Press esc to go back.
+- **Viewer**: double-click a document, text file, image, audio or video file to see it across the whole window. Space does the same for any file. It has a full screen button. Press esc to go back.
 - **File actions**: open, new folder, rename, cut, copy, paste and move to Trash.
 - **Hidden items**: a switch in the View menu of the toolbar.
 - **Live refresh**: the list updates when files change on disk.
